@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>多功能字数统计工具</title>
+    <!-- 添加网页标签页的头像图标 (favicon) -->
+    <link rel="icon" type="image/jpeg" href="touxiang.jpg">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f6f9fc 0%, #eef2f5 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', 'Roboto', 'Noto Sans CJK SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            padding: 1.5rem;
+        }
+
+        /* 主卡片容器 */
+        .stats-container {
+            max-width: 1000px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(0px);
+            border-radius: 2.5rem;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.02);
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        /* 内边距区域 */
+        .card-inner {
+            padding: 2rem 2rem 2.2rem 2rem;
+        }
+
+        /* 标题与副标题 */
+        .title-section {
+            text-align: center;
+            margin-bottom: 1.8rem;
+        }
+
+        .title-section h1 {
+            font-size: 1.9rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #1f2b3c, #2c3e4e);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+        }
+
+        .title-section p {
+            color: #5a6e7c;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            font-weight: 400;
+        }
+
+        /* 输入框区域 */
+        .textarea-wrapper {
+            margin-bottom: 1.8rem;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 280px;
+            padding: 1.2rem 1.5rem;
+            font-size: 1rem;
+            line-height: 1.6;
+            font-family: 'SF Mono', 'Fira Code', 'Consolas', 'Monaco', 'Menlo', monospace;
+            background-color: #fefef7;
+            border: 2px solid #dce5ec;
+            border-radius: 1.5rem;
+            resize: vertical;
+            outline: none;
+            transition: all 0.2s;
+            color: #1e2a32;
+            font-weight: 450;
+            letter-spacing: 0.2px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.02);
+        }
+
+        textarea:focus {
+            border-color: #3b8fc2;
+            box-shadow: 0 0 0 3px rgba(59, 143, 194, 0.2), inset 0 1px 3px rgba(0,0,0,0.03);
+            background-color: #ffffff;
+        }
+
+        /* 按钮工具栏 - 修改为左右布局：左边返回按钮，右边清空+统计 */
+        .button-bar {
+            display: flex;
+            gap: 1.2rem;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        /* 左侧按钮组容器 (只放返回按钮) */
+        .button-left {
+            display: flex;
+            gap: 0;
+        }
+
+        /* 右侧按钮组容器 (清空+统计) */
+        .button-right {
+            display: flex;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.8rem;
+            font-size: 1rem;
+            font-weight: 500;
+            border: none;
+            border-radius: 2.5rem;
+            cursor: pointer;
+            transition: 0.2s;
+            background-color: #eef2f5;
+            color: #2c3e4e;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            font-family: inherit;
+        }
+
+        /* 返回按钮样式，保持与原有风格一致，略微亲和 */
+        .btn-back {
+            background: #eef2f5;
+            border: 1px solid #d0dbe5;
+            color: #2c5a74;
+            padding: 0.75rem 1.8rem;
+        }
+
+        .btn-back:hover {
+            background-color: #e2ecf5;
+            border-color: #9bb7cc;
+            transform: translateY(-1px);
+            color: #1a3e52;
+        }
+
+        .btn-clear {
+            background: #f0f4f9;
+            border: 1px solid #d0dbe5;
+            color: #3a5468;
+        }
+
+        .btn-clear:hover {
+            background-color: #ffe6e5;
+            border-color: #f5b7b1;
+            color: #b13e3a;
+            transform: translateY(-1px);
+        }
+
+        .btn-stats {
+            background: #2c5a74;
+            color: white;
+            box-shadow: 0 4px 8px rgba(44, 90, 116, 0.2);
+            border: none;
+        }
+
+        .btn-stats:hover {
+            background: #1f445b;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 14px rgba(31, 68, 91, 0.25);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        /* 统计面板 - 优雅网格 */
+        .stats-board {
+            background: #f8fafd;
+            border-radius: 1.5rem;
+            padding: 1.4rem 1.8rem;
+            border: 1px solid #e2e9f0;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.6), 0 6px 12px -8px rgba(0,0,0,0.1);
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: baseline;
+            flex-wrap: wrap;
+            padding: 0.65rem 0;
+            border-bottom: 1px dashed #dfe6ed;
+            font-size: 1.05rem;
+            font-weight: 450;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            width: 130px;
+            flex-shrink: 0;
+            color: #2c4b62;
+            font-weight: 530;
+            letter-spacing: 0.3px;
+        }
+
+        .stat-value {
+            color: #1f2f3a;
+            font-weight: 600;
+            background: #ffffffd9;
+            padding: 0.2rem 0.8rem;
+            border-radius: 2rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            min-width: 80px;
+            display: inline-block;
+            margin-left: 0.5rem;
+            border: 1px solid #dce5ec;
+        }
+
+        /* 响应式: 小屏幕时标签换行优化 */
+        @media (max-width: 550px) {
+            .card-inner {
+                padding: 1.5rem;
+            }
+            .stat-label {
+                width: 100%;
+                margin-bottom: 0.2rem;
+            }
+            .stat-item {
+                flex-direction: column;
+                gap: 0.3rem;
+            }
+            .stat-value {
+                margin-left: 0;
+                align-self: flex-start;
+            }
+            .button-bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.8rem;
+            }
+            .button-left, .button-right {
+                justify-content: center;
+            }
+            textarea {
+                min-height: 220px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="stats-container">
+    <div class="card-inner">
+        <div class="title-section">
+            <h1>📝 字海统计 · 精确洞察</h1>
+            <p>支持汉字 | 中文标点 | 英文(含数字/符号) | 独立数字 | 字符总数</p>
+        </div>
+
+        <!-- 核心输入区: 无字数上限 -->
+        <div class="textarea-wrapper">
+            <textarea id="mainTextarea" placeholder="✍️ 请在此输入任意文字，无字符上限...
+支持中英文、数字、标点、特殊符号等，点击【统计】按钮可获取详细字量分析。" rows="10"></textarea>
+        </div>
+
+        <!-- 按钮组：左下方返回按钮，右下方清空+统计（符合要求） -->
+        <div class="button-bar">
+            <div class="button-left">
+                <button class="btn btn-back" id="backBtn" type="button">🔙 返回</button>
+            </div>
+            <div class="button-right">
+                <button class="btn btn-clear" id="clearBtn" type="button">🗑️ 清空</button>
+                <button class="btn btn-stats" id="statsBtn" type="button">🔢 统计</button>
+            </div>
+        </div>
+
+        <!-- 统计结果显示区: 冒号右边显示数量 -->
+        <div class="stats-board" id="statsBoard">
+            <div class="stat-item">
+                <span class="stat-label">📖 汉字：</span>
+                <span class="stat-value" id="hanCount">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">🔖 中文标点：</span>
+                <span class="stat-value" id="chinesePunctCount">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">📚 汉字+标点：</span>
+                <span class="stat-value" id="hanPlusPunctCount">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">🌐 英文：<span style="font-size:0.75rem; font-weight:normal;">(含英数字、符号、标点)</span></span>
+                <span class="stat-value" id="englishCount">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">🔢 数字：</span>
+                <span class="stat-value" id="digitCount">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">✨ 字符总数：</span>
+                <span class="stat-value" id="totalCharsCount">0</span>
+            </div>
+        </div>
+        <div style="font-size:0.75rem; text-align:right; margin-top:0.8rem; color:#7f8c8d;">
+            ※ 统计逻辑：汉字(Unicode 4E00-9FFF范围常用汉字及扩展区基本汉字)；中文标点(全角逗号句号问号叹号分号冒号引号顿号括号等)；英文部分包含英文字母、英文标点符号、数字类但数字会额外独立统计；数字只计数0-9；字符总数为所有字符个数(含换行/空格等)
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // 获取DOM元素
+        const textarea = document.getElementById('mainTextarea');
+        const clearBtn = document.getElementById('clearBtn');
+        const statsBtn = document.getElementById('statsBtn');
+        const backBtn = document.getElementById('backBtn');
+
+        // 需要更新的各个统计值span
+        const hanSpan = document.getElementById('hanCount');
+        const chinesePunctSpan = document.getElementById('chinesePunctCount');
+        const hanPlusPunctSpan = document.getElementById('hanPlusPunctCount');
+        const englishSpan = document.getElementById('englishCount');
+        const digitSpan = document.getElementById('digitCount');
+        const totalCharsSpan = document.getElementById('totalCharsCount');
+
+        // ---------- 核心统计函数 ----------
+        // 统计输入文本的各个维度
+        function computeStatistics(text) {
+            // 1. 字符总数：任何字符都算 (包括换行符、回车、空格、标点、emoji等)
+            const totalChars = text.length;
+            
+            // 初始化计数
+            let hanCount = 0;               // 汉字 (CJK统一表意文字)
+            let chinesePunctCount = 0;      // 中文标点 (全角标点，包括，。！？；：“”‘’、《》【】「」等)
+            let englishCharCount = 0;       // 英文相关：英文字母 + 英文标点符号 + 扩展拉丁字母 + 半角数字(含英文状态下数字)
+            let digitCount = 0;              // 纯数字0-9计数（独立数字位，每个数字字符单独计数）
+
+            // 遍历每个字符逐一判断
+            for (let i = 0; i < text.length; i++) {
+                const ch = text[i];
+                const code = ch.charCodeAt(0);
+                
+                // 1. 统计数字 (0-9) 任何位置的数字字符都计入，同时也会被英文统计包含（英文含数字，符合需求，独立展示数字不冲突）
+                if (code >= 48 && code <= 57) {
+                    digitCount++;
+                }
+                
+                // 2. 判断汉字: 基本汉字 0x4E00-0x9FFF，扩展A 0x3400-0x4DBF，扩展B少量常用覆盖，以及兼容汉字区F900-FAFF
+                const isCJK = (code >= 0x4E00 && code <= 0x9FFF) || (code >= 0x3400 && code <= 0x4DBF) || (code >= 0x20000 && code <= 0x2A6DF) || (code >= 0xF900 && code <= 0xFAFF);
+                if (isCJK) {
+                    hanCount++;
+                    continue; // 已归类汉字，跳过后面的英文及标点判定
+                }
+                
+                // 3. 中文标点判断：全角标点常见范围
+                const isChinesePunct = (
+                    (code >= 0x3000 && code <= 0x303F) ||   // CJK符号和标点 (、。〃等)
+                    (code >= 0xFF01 && code <= 0xFF0F) ||   // 全角 ! " # $ % & ' ( ) * + , - . /
+                    (code >= 0xFF1A && code <= 0xFF1F) ||   // 全角 : ; < = > ?
+                    (code >= 0xFF20 && code <= 0xFF20) ||   // @ 全角
+                    (code >= 0xFF3B && code <= 0xFF40) ||   // [ \ ] ^ _ `
+                    (code >= 0xFF5B && code <= 0xFF65) ||   // { | } ~ 半角以及全角小符号
+                    ch === '·' || ch === '…' || ch === '—' || ch === '～' ||
+                    ch === '「' || ch === '」' || ch === '『' || ch === '』' || ch === '【' || ch === '】' ||
+                    ch === '《' || ch === '》' || ch === '、' || ch === '；' || ch === '：' || ch === '？' || 
+                    ch === '！' || ch === '“' || ch === '”' || ch === '‘' || ch === '’' || ch === '（' || ch === '）' || 
+                    ch === '；' || ch === '：' || ch === '，' || ch === '。' 
+                );
+                
+                if (isChinesePunct) {
+                    chinesePunctCount++;
+                    continue; // 归类为中文标点，不再参与英文统计
+                }
+                
+                // 4. 英文统计部分（按需求包含英文状态下的数字、符号、标点、字母）
+                // 涵盖: 英文大小写字母、数字(已统计digitCount但这里同样累加以满足英文包含数字的语义)、英文标点符号(半角标点)、扩展拉丁字母
+                const isLetter = (code >= 65 && code <= 90) || (code >= 97 && code <= 122);
+                const isAsciiDigit = (code >= 48 && code <= 57);
+                const isAsciiPunct = (code >= 33 && code <= 47) || (code >= 58 && code <= 64) || (code >= 91 && code <= 96) || (code >= 123 && code <= 126);
+                const isExtendedLatin = (code >= 0x00C0 && code <= 0x00FF) || (code >= 0x0100 && code <= 0x017F);
+                
+                if (isLetter || isAsciiDigit || isAsciiPunct || isExtendedLatin) {
+                    englishCharCount++;
+                }
+                // 其余字符（emoji、其它语言文字、空白符等）不参与特定分类，只计入字符总数
+            }
+            
+            // 计算“汉字+标点”
+            const hanPlusPunct = hanCount + chinesePunctCount;
+            
+            return {
+                hanCount,
+                chinesePunctCount,
+                hanPlusPunct,
+                englishCount: englishCharCount,
+                digitCount,
+                totalChars
+            };
+        }
+        
+        // 刷新UI显示
+        function updateStats() {
+            const text = textarea.value;
+            const stats = computeStatistics(text);
+            hanSpan.innerText = stats.hanCount;
+            chinesePunctSpan.innerText = stats.chinesePunctCount;
+            hanPlusPunctSpan.innerText = stats.hanPlusPunct;
+            englishSpan.innerText = stats.englishCount;
+            digitSpan.innerText = stats.digitCount;
+            totalCharsSpan.innerText = stats.totalChars;
+        }
+        
+        // 清空输入框并重置统计
+        function clearTextAndReset() {
+            textarea.value = '';
+            updateStats();
+            textarea.focus();
+        }
+        
+        // 统计按钮行为：重新读取textarea内容，刷新下方统计数据
+        function handleStats() {
+            updateStats();
+            const board = document.getElementById('statsBoard');
+            board.style.transition = 'background 0.15s';
+            board.style.backgroundColor = '#eef4fc';
+            setTimeout(() => {
+                board.style.backgroundColor = '';
+            }, 200);
+        }
+
+        // 返回功能：跳转到 index.html
+        function goBackToIndex() {
+            window.location.href = 'index.html';
+        }
+        
+        // 绑定事件
+        clearBtn.addEventListener('click', clearTextAndReset);
+        statsBtn.addEventListener('click', handleStats);
+        if (backBtn) {
+            backBtn.addEventListener('click', goBackToIndex);
+        }
+        
+        // 确保文本框初始为空（没有任何预设示例文字）
+        // 并且统计数据初始化均为0
+        updateStats();
+    })();
+</script>
+</body>
+</html>

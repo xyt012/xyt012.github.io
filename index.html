@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的个人网站</title>
+    <link rel="icon" type="image/jpeg" href="touxiang.jpg">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            min-height: 100vh;
+            background-image: url('beijing.png'); /* 修改背景图片 */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+        
+        /* 添加一个半透明遮罩让文字更清晰，但不遮挡背景 */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.3);
+            z-index: 0;
+        }
+        
+        .container {
+            max-width: 900px;
+            width: 100%;
+            padding: 40px;
+            border-radius: 20px;
+            background-color: rgba(255, 255, 255, 0.95); /* 增加不透明度，移除模糊效果 */
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+            position: relative;
+            /* 移除 backdrop-filter 模糊效果 */
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            margin: 20px 0;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            font-size: 2.8rem;
+            margin-bottom: 40px;
+            font-weight: 700;
+            text-align: center;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* 功能列表样式 */
+        .feature-list {
+            width: 100%;
+        }
+        
+        .feature-list h2 {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        .feature-item {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border-left: 5px solid #3498db;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .feature-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+        
+        .feature-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .feature-title {
+            color: #2c3e50;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .toggle-btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 8px 20px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+        }
+        
+        .toggle-btn:hover {
+            background: linear-gradient(135deg, #2980b9, #1f639b);
+            box-shadow: 0 6px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .toggle-btn:active {
+            transform: scale(0.98);
+        }
+        
+        /* 新增“进入”按钮样式 — 与展开按钮风格统一但略有区分，也作为直接跳转链接 */
+        .direct-enter-btn {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 8px 20px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3);
+            text-decoration: none;
+            display: inline-block;
+            line-height: normal;
+            text-align: center;
+        }
+        
+        .direct-enter-btn:hover {
+            background: linear-gradient(135deg, #27ae60, #1f8f4b);
+            box-shadow: 0 6px 15px rgba(46, 204, 113, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .direct-enter-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .feature-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease, opacity 0.5s ease;
+            opacity: 0;
+            margin-top: 0;
+        }
+        
+        .feature-content.expanded {
+            max-height: 300px;
+            opacity: 1;
+            margin-top: 25px;
+        }
+        
+        .option-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        
+        .option-btn {
+            display: inline-block;
+            padding: 14px 35px;
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 50px;
+            box-shadow: 0 6px 15px rgba(46, 204, 113, 0.3);
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+            min-width: 200px;
+        }
+        
+        .option-btn.secondary {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            box-shadow: 0 6px 15px rgba(155, 89, 182, 0.3);
+        }
+        
+        /* 新增返回按钮样式 */
+        .option-btn.return-btn {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            box-shadow: 0 6px 15px rgba(231, 76, 60, 0.3);
+            min-width: 180px;
+        }
+        
+        .option-btn.return-btn:hover {
+            box-shadow: 0 10px 20px rgba(231, 76, 60, 0.4);
+        }
+        
+        .option-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(46, 204, 113, 0.4);
+        }
+        
+        .option-btn.secondary:hover {
+            box-shadow: 0 10px 20px rgba(155, 89, 182, 0.4);
+        }
+        
+        .option-btn:active {
+            transform: translateY(0);
+        }
+        
+        /* 新增返回按钮容器 */
+        .return-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+        
+        .footer-note {
+            color: #7f8c8d;
+            font-size: 1rem;
+            margin-top: 30px;
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid rgba(52, 73, 94, 0.15);
+            font-style: italic;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+                margin: 20px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+                margin-bottom: 30px;
+            }
+            
+            .feature-list h2 {
+                font-size: 1.6rem;
+            }
+            
+            .feature-title {
+                font-size: 1.3rem;
+            }
+            
+            .option-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .option-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .return-container .option-btn {
+                width: 100%;
+                max-width: 250px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .feature-item {
+                padding: 20px;
+            }
+            
+            .feature-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .toggle-btn {
+                align-self: stretch;
+                text-align: center;
+            }
+            
+            .direct-enter-btn {
+                align-self: stretch;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>XYT的个人网站</h1>
+        
+        <div class="feature-list">
+            <h2>功能列表</h2>
+            
+            <div class="feature-item">
+                <div class="feature-header" onclick="toggleFeature(1)">
+                    <div class="feature-title">字数统计工具</div>
+                    <button class="toggle-btn" id="toggle-btn-1">展开</button>
+                </div>
+                <div class="feature-content" id="feature-content-1">
+                    <div class="option-buttons">
+                        <a href="tongji.html" target="_blank" class="option-btn">进入网页</a>
+                        <!-- 修改为下载 fanyi.zip 文件 -->
+                        <a href="tongji.zip" download="tongji.zip" class="option-btn secondary">下载源代码</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 新增：实用网站检索 — 直接进入，无需展开 -->
+            <div class="feature-item">
+                <div class="feature-header" style="cursor: default;">
+                    <div class="feature-title">实用网站检索</div>
+                    <!-- 直接放置“进入”按钮，不再触发展开/收起 -->
+                    <a href="jiansuo.html" target="_blank" class="direct-enter-btn">进入</a>
+                </div>
+                <!-- 没有内容区域，符合“不需要再展开”的要求 -->
+            </div>
+        </div>
+        
+        <!-- 新增返回按钮区域 ———— 修改为在当前页面直接跳转，不再新窗口打开 (去掉 target="_blank") -->
+        <div class="return-container">
+            <a href="https://link3.cc/xyt012" class="option-btn return-btn">返回</a>
+        </div>
+        
+        <div class="footer-note">
+            目前网站仍在开发当中
+        </div>
+    </div>
+
+    <script>
+        // 展开/收起功能 (仅作用于多语言翻译器)
+        function toggleFeature(id) {
+            const content = document.getElementById(`feature-content-${id}`);
+            const button = document.getElementById(`toggle-btn-${id}`);
+            
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                button.textContent = '展开';
+            } else {
+                content.classList.add('expanded');
+                button.textContent = '收起';
+            }
+        }
+        
+        // 页面加载动画及涟漪效果
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.querySelector('.container');
+            container.style.opacity = '0';
+            container.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                container.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+                container.style.opacity = '1';
+                container.style.transform = 'translateY(0)';
+            }, 300);
+            
+            // 按钮点击涟漪效果 (包括新添加的进入按钮、展开按钮、选项按钮等)
+            const buttons = document.querySelectorAll('.toggle-btn, .option-btn, .direct-enter-btn');
+            buttons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    // 创建点击涟漪效果
+                    const rect = this.getBoundingClientRect();
+                    const size = Math.max(rect.width, rect.height);
+                    const x = e.clientX - rect.left - size/2;
+                    const y = e.clientY - rect.top - size/2;
+                    
+                    const ripple = document.createElement('span');
+                    ripple.style.cssText = `
+                        position: absolute;
+                        border-radius: 50%;
+                        background: rgba(255, 255, 255, 0.7);
+                        transform: scale(0);
+                        animation: ripple-animation 0.6s linear;
+                        width: ${size}px;
+                        height: ${size}px;
+                        top: ${y}px;
+                        left: ${x}px;
+                        pointer-events: none;
+                    `;
+                    
+                    this.style.position = 'relative';
+                    this.style.overflow = 'hidden';
+                    this.appendChild(ripple);
+                    
+                    // 移除涟漪元素
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
+                });
+            });
+        });
+        
+        // 添加CSS动画
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple-animation {
+                to {
+                    transform: scale(4);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
